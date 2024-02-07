@@ -98,3 +98,4 @@ elif app_mode == 'ANN Optimization':
             st.success('Optimization started... (this is a placeholder action)')
     else:
         st.warning('Please upload a dataset in the "Data Upload" section.')
+
