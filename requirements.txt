@@ -3,7 +3,7 @@ pandas
 numpy
 seaborn
 matplotlib
-sklearn
+scikit-learn
 xgboost
 tensorflow
 optuna
