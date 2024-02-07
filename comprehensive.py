@@ -4,7 +4,8 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.metrics import accuracy_score, mean_squared_error
 import xgboost as xgb
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
@@ -19,11 +20,12 @@ def load_data(uploaded_file):
     elif uploaded_file.name.endswith('.xlsx'):
         return pd.read_excel(uploaded_file)
 
-# Set page config
+# Initialize Streamlit app and session state
 st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
-
-# Main title
 st.title('Geotechnical Data Analysis and ML Model Recommendations')
+
+if 'df' not in st.session_state:
+    st.session_state.df = None
 
 # Sidebar navigation
 st.sidebar.header('Navigation')
@@ -34,48 +36,65 @@ if app_mode == 'Data Upload':
     st.header('Step 1: Upload Your Dataset')
     uploaded_file = st.file_uploader("", type=['csv', 'xlsx'])
     if uploaded_file is not None:
-        df = load_data(uploaded_file)
-        st.session_state['df'] = df  # Store the dataframe in session state
-        st.success('Data loaded successfully! Now head over to the "Data Analysis" section.')
-        st.write(df.head())
+        st.session_state.df = load_data(uploaded_file)
+        st.success('Data loaded successfully!')
+        st.write(st.session_state.df.head())
     else:
         st.info('Awaiting dataset upload.')
 
 # Data Analysis & Visualization
-if app_mode == 'Data Analysis' and 'df' in st.session_state:
-    st.header('Step 2: Explore Your Data')
-    df = st.session_state['df']  # Access the dataframe from session state
-    with st.expander("View Data Summary"):
-        st.write(df.describe())
-
-    with st.expander("Visualize Data Distribution"):
-        column_to_plot = st.selectbox('Select a column to visualize', df.columns, key='dist_plot')
-        fig, ax = plt.subplots()
-        sns.histplot(df[column_to_plot], kde=True, ax=ax)
-        st.pyplot(fig)
-
-    with st.expander("Correlation Matrix"):
-        numeric_df = df.select_dtypes(include=[np.number])
-        fig, ax = plt.subplots()
-        sns.heatmap(numeric_df.corr(), annot=True, fmt=".2f", cmap='coolwarm', ax=ax)
-        st.pyplot(fig)
 elif app_mode == 'Data Analysis':
-    st.warning('Please upload a dataset in the "Data Upload" section.')
+    if st.session_state.df is not None:
+        df = st.session_state.df
+        st.header('Step 2: Explore Your Data')
+        with st.expander("View Data Summary"):
+            st.write(df.describe())
 
-# Machine Learning Model Recommendations
-if app_mode == 'Model Recommendations' and 'df' in st.session_state:
-    st.header('Step 3: Get Model Recommendations')
-    df = st.session_state['df']  # Access the dataframe from session state
-    # Implementation for model recommendations goes here
-    st.write("Model recommendations will be displayed here.")
+        with st.expander("Visualize Data Distribution"):
+            column_to_plot = st.selectbox('Select a column to visualize', df.columns, key='dist_plot')
+            fig, ax = plt.subplots()
+            sns.histplot(df[column_to_plot], kde=True, ax=ax)
+            st.pyplot(fig)
+
+        with st.expander("Correlation Matrix"):
+            numeric_df = df.select_dtypes(include=[np.number])
+            fig, ax = plt.subplots()
+            sns.heatmap(numeric_df.corr(), annot=True, fmt=".2f", cmap='coolwarm', ax=ax)
+            st.pyplot(fig)
+    else:
+        st.warning('Please upload a dataset in the "Data Upload" section.')
+
+# Model Recommendations
 elif app_mode == 'Model Recommendations':
-    st.warning('Please upload a dataset in the "Data Upload" section.')
+    if st.session_state.df is not None:
+        df = st.session_state.df
+        st.header('Step 3: Get Model Recommendations')
+        target = st.selectbox('Select the target variable', df.columns)
+        task = st.radio("Task Type", ('Classification', 'Regression'))
+
+        if task == 'Classification':
+            st.write('For classification, consider using:')
+            st.write('1. Random Forest Classifier')
+            st.write('2. XGBoost Classifier')
+        elif task == 'Regression':
+            st.write('For regression, consider using:')
+            st.write('1. Random Forest Regressor')
+            st.write('2. XGBoost Regressor')
+    else:
+        st.warning('Please upload a dataset in the "Data Upload" section.')
 
 # ANN Optimization with Optuna
-if app_mode == 'ANN Optimization' and 'df' in st.session_state:
-    st.header('Step 4: Optimize ANN Model')
-    df = st.session_state['df']  # Access the dataframe from session state
-    # Placeholder for ANN optimization code
-    st.write("ANN optimization section.")
 elif app_mode == 'ANN Optimization':
-    st.warning('Please upload a dataset in the "Data Upload" section.')
+    if st.session_state.df is not None:
+        df = st.session_state.df
+        st.header('Step 4: Optimize ANN Model')
+        target = st.selectbox('Select the target variable for optimization', df.columns, key='ann_target')
+
+        # Placeholder for ANN optimization
+        st.markdown("This section will be used for ANN optimization with Optuna. Stay tuned for further updates.")
+
+        # Example button to simulate starting the optimization process
+        if st.button('Start Optimization'):
+            st.success('Optimization started... (this is a placeholder action)')
+    else:
+        st.warning('Please upload a dataset in the "Data Upload" section.')
