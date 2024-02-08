@@ -11,6 +11,7 @@ import optuna
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.optimizers import RMSprop, Adam, SGD
+import numpy as np
 
 # Load data function
 def load_data(uploaded_file):
