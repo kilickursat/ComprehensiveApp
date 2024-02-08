@@ -87,32 +87,54 @@ elif app_mode == 'Model Recommendations' and st.session_state.df is not None:
             report = classification_report(y_test, predictions, output_dict=False)
             st.text(report)
 
-# ANN Optimization with Optuna
+
+
 elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
     df = st.session_state.df
+    st.header('Step 4: Optimize ANN Model')
     target_col = st.selectbox('Select the target variable for ANN optimization', df.columns, key='ann_opt_target')
     task = st.radio("ANN Task Type", ['Classification', 'Regression'], key='ann_task_type')
     
     # Preprocessing for ANN
     X = pd.get_dummies(df.drop(columns=[target_col]), drop_first=True)
-    y = df[target_col] if task == 'Regression' else LabelEncoder().fit_transform(df[target_col])
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    y = df[target_col].copy()
+    if task == 'Classification':
+        le = LabelEncoder()
+        y = le.fit_transform(y)
     
+    # Ensure data is in the correct format for TensorFlow
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train = X_train.astype(np.float32)
+    X_test = X_test.astype(np.float32)
+    y_train = y_train.astype(np.float32)
+    y_test = y_test.astype(np.float32)
+
+    # Define the objective function for Optuna
     def objective(trial):
         model = Sequential()
         model.add(Dense(units=trial.suggest_int('units', 32, 512, log=True), activation='relu', input_dim=X_train.shape[1]))
         model.add(Dropout(trial.suggest_float('dropout', 0.1, 0.5)))
-        model.add(Dense(1, activation='sigmoid' if task == 'Classification' else 'linear'))
-        optimizer_options = {'rmsprop': RMSprop(), 'adam': Adam(), 'sgd': SGD()}
-        model.compile(loss='binary_crossentropy' if task == 'Classification' else 'mean_squared_error',
-                      optimizer=optimizer_options[trial.suggest_categorical('optimizer', ['rmsprop', 'adam', 'sgd'])],
-                      metrics=['accuracy' if task == 'Classification' else 'mse'])
+        if task == 'Classification':
+            model.add(Dense(1, activation='sigmoid'))  # Use sigmoid for binary classification
+            model.compile(optimizer=trial.suggest_categorical('optimizer', ['rmsprop', 'adam', 'sgd']),
+                          loss='binary_crossentropy', 
+                          metrics=['accuracy'])
+        else:
+            model.add(Dense(1, activation='linear'))  # Use linear for regression
+            model.compile(optimizer=trial.suggest_categorical('optimizer', ['rmsprop', 'adam', 'sgd']),
+                          loss='mean_squared_error', 
+                          metrics=['mse'])
         
-        model.fit(X_train, y_train, epochs=trial.suggest_int('epochs', 10, 100, step=10), verbose=0, batch_size=trial.suggest_int('batch_size', 16, 128, log=True))
+        model.fit(X_train, y_train, epochs=trial.suggest_int('epochs', 10, 100), verbose=0,
+                  batch_size=trial.suggest_int('batch_size', 32, 128, log=True),
+                  validation_split=0.1)  # Consider using validation data if available
+        
+        # Evaluate the model
         loss, _ = model.evaluate(X_test, y_test, verbose=0)
         return loss
 
+    # Start the Optuna optimization process
     if st.button('Start ANN Optimization'):
         study = optuna.create_study(direction='minimize')
-        study.optimize(objective, n_trials=10)  # Adjust n_trials based on your needs
+        study.optimize(objective, n_trials=10)  # Adjust the number of trials as needed
         st.write('Best parameters:', study.best_params)
