@@ -9,3 +9,5 @@ tensorflow
 optuna
 openpyxl
 plotly
+transformers
+
