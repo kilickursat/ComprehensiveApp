@@ -14,6 +14,52 @@ from tensorflow.keras.layers import Dense, Dropout
 import numpy as np
 from transformers import pipeline
 
+import streamlit as st
+from transformers import pipeline
+
+# Ensure this is the first command executed (right after imports)
+st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
+
+@st.cache(allow_output_mutation=True)
+def load_sentiment_model():
+    return pipeline("sentiment-analysis")
+
+def main_page():
+    st.title('Geotechnical Data Analysis and ML Model Recommendations')
+    # Placeholder for main page content
+    st.write("Welcome to the main page. Use the sidebar to navigate through the app.")
+
+def sentiment_analysis_page():
+    st.title("Sentiment Analysis")
+    sentiment_model = load_sentiment_model()
+    user_input = st.text_area("Enter text to analyze sentiment:")
+    if user_input:
+        with st.spinner('Analyzing...'):
+            result = sentiment_model(user_input)[0]
+            st.write(f"Sentiment: {result['label']}, Confidence: {result['score']:.2f}")
+
+def connect_with_me_section():
+    st.markdown('---')  # Adds a horizontal line for visual separation
+    st.header('Connect with Me 🌐')
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown('''[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/kursat-kilic-395b5855/)''', unsafe_allow_html=True)
+    with col2:
+        st.markdown('''[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/kilickursat)''', unsafe_allow_html=True)
+    with col3:
+        st.markdown('''[![Google Scholar](https://img.shields.io/badge/Google_Scholar-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://scholar.google.co.jp/citations?user=sNB5IQsAAAAJ&hl=tr)''', unsafe_allow_html=True)
+
+# Sidebar navigation setup
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Main Page", "Sentiment Analysis"])
+
+if page == "Main Page":
+    main_page()
+elif page == "Sentiment Analysis":
+    sentiment_analysis_page()
+
+# Call the connect section function to ensure it's displayed on every page
+connect_with_me_section()
 
 
 # Load and preprocess data
@@ -136,46 +182,3 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
             st.success('ANN optimization completed!')
             st.write('Best parameters:', study.best_params)
 
-# Ensure this is the first Streamlit command executed
-st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
-
-# Function to load the sentiment analysis model
-@st.cache(allow_output_mutation=True)
-def load_sentiment_model():
-    return pipeline("sentiment-analysis")
-
-# Define your page content functions here
-def main_page():
-    st.title('Geotechnical Data Analysis and ML Model Recommendations')
-    # Your main page content
-
-def sentiment_analysis_page():
-    st.title("Sentiment Analysis")
-    sentiment_model = load_sentiment_model()
-    user_input = st.text_area("Enter text to analyze sentiment:")
-    if user_input:
-        result = sentiment_model(user_input)[0]
-        st.write(f"Sentiment: {result['label']}, Confidence: {result['score']:.2f}")
-
-# Navigation
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Main Page", "Sentiment Analysis"])
-
-if page == "Main Page":
-    main_page()
-elif page == "Sentiment Analysis":
-    sentiment_analysis_page()
-
-# Connect with Me section
-def connect_with_me_section():
-    st.markdown('---')  # Separator
-    st.header('Connect with Me 🌐')
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown('''[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/kursat-kilic-395b5855/)''', unsafe_allow_html=True)
-    with col2:
-        st.markdown('''[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/kilickursat)''', unsafe_allow_html=True)
-    with col3:
-        st.markdown('''[![Google Scholar](https://img.shields.io/badge/Google_Scholar-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://scholar.google.co.jp/citations?user=sNB5IQsAAAAJ&hl=tr)''', unsafe_allow_html=True)
-
-connect_with_me_section()
