@@ -129,6 +129,6 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
     if st.button('Start ANN Optimization'):
         with st.spinner('Optimizing ANN...'):
             study = optuna.create_study(direction='minimize')
-            study.optimize(objective, n_trials=10, callbacks=[lambda study, trial: st.experimental_rerun()])
+            study.optimize(objective, n_trials=10, callbacks=[lambda study, trial: st.rerun()])
             st.success('ANN optimization completed!')
             st.write('Best parameters:', study.best_params)
