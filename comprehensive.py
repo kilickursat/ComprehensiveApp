@@ -2,23 +2,27 @@ import streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import plotly.express as px
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import classification_report, mean_squared_error, r2_score
+from sklearn.metrics import classification_report, confusion_matrix, mean_squared_error, r2_score
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 import xgboost as xgb
 import optuna
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras.optimizers import Adam
 import numpy as np
+import time
 
 # Load and preprocess data
 def load_data(uploaded_file):
-    if uploaded_file.name.endswith('.csv'):
-        return pd.read_csv(uploaded_file)
-    elif uploaded_file.name.endswith('.xlsx'):
-        return pd.read_excel(uploaded_file, engine='openpyxl')
+    try:
+        if uploaded_file.name.endswith('.csv'):
+            return pd.read_csv(uploaded_file), None
+        elif uploaded_file.name.endswith('.xlsx'):
+            return pd.read_excel(uploaded_file, engine='openpyxl'), None
+    except Exception as e:
+        return None, str(e)
 
 st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
 st.title('Geotechnical Data Analysis and ML Model Recommendations')
@@ -30,72 +34,79 @@ st.sidebar.header('Navigation')
 app_mode = st.sidebar.radio('Choose the app mode', ['Data Upload', 'Data Analysis', 'Model Recommendations', 'ANN Optimization'])
 
 if app_mode == 'Data Upload':
-    uploaded_file = st.file_uploader("", type=['csv', 'xlsx'])
+    uploaded_file = st.file_uploader("Upload your CSV or Excel file here.", type=['csv', 'xlsx'])
     if uploaded_file is not None:
-        st.session_state.df = load_data(uploaded_file)
-        st.success('Data loaded successfully!')
-        st.write(st.session_state.df.head())
+        data, error = load_data(uploaded_file)
+        if data is not None:
+            st.session_state.df = data
+            st.success('Data loaded successfully!')
+            st.write(st.session_state.df.head())
+        else:
+            st.error(f"Error loading data: {error}")
 
 elif app_mode == 'Data Analysis' and st.session_state.df is not None:
     df = st.session_state.df
     st.header('Data Analysis')
+    analysis_options = st.multiselect('Select the types of analysis to perform:',
+                                      ['Data Summary', 'Correlation Matrix', 'Frequency Histograms'],
+                                      default=['Data Summary'])
     
-    with st.expander("Data Summary"):
-        st.write(df.describe())
+    if 'Data Summary' in analysis_options:
+        with st.expander("Data Summary"):
+            st.write(df.describe())
     
-    with st.expander("Correlation Matrix"):
-        numeric_df = df.select_dtypes(include=[np.number])
-        fig, ax = plt.subplots()
-        sns.heatmap(numeric_df.corr(), annot=True, cmap='coolwarm', ax=ax)
-        st.pyplot(fig)
-    
-    with st.expander("Frequency Histograms"):
-        numeric_columns = df.select_dtypes(include=[np.number]).columns
-        col1, col2 = st.columns(2)
-        with col1:
-            selected_column = st.selectbox('Select Feature', numeric_columns)
-        with col2:
-            n_bins = st.slider('Number of Bins', min_value=5, max_value=50, value=10)
-        fig, ax = plt.subplots()
-        sns.histplot(df[selected_column], bins=n_bins, kde=True, ax=ax)
-        ax.set_title(f'Histogram of {selected_column}')
-        st.pyplot(fig)
+    if 'Correlation Matrix' in analysis_options:
+        with st.expander("Correlation Matrix"):
+            numeric_df = df.select_dtypes(include=[np.number])
+            fig = px.imshow(numeric_df.corr(), text_auto=True, aspect="auto", color_continuous_scale='RdBu_r')
+            st.plotly_chart(fig)
 
+    if 'Frequency Histograms' in analysis_options:
+        with st.expander("Frequency Histograms"):
+            numeric_columns = df.select_dtypes(include=[np.number]).columns
+            selected_column = st.selectbox('Select Feature', numeric_columns)
+            n_bins = st.slider('Number of Bins', min_value=5, max_value=50, value=10)
+            fig = px.histogram(df, x=selected_column, nbins=n_bins)
+            st.plotly_chart(fig)
 
 elif app_mode == 'Model Recommendations' and st.session_state.df is not None:
+    st.header('Model Recommendations')
     df = st.session_state.df
     target_col = st.selectbox('Select the target variable', df.columns)
     task = st.radio("Task Type", ['Classification', 'Regression'])
     model_type = st.radio("Model Selection", ['Random Forest', 'XGBoost'])
-
     X = pd.get_dummies(df.drop(columns=[target_col]), drop_first=True)
     y = df[target_col].astype(np.float32) if task == 'Regression' else LabelEncoder().fit_transform(df[target_col])
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     
     if st.button('Train Model'):
-        if task == 'Regression':
-            model = RandomForestRegressor() if model_type == 'Random Forest' else xgb.XGBRegressor()
-        else:
-            model = RandomForestClassifier() if model_type == 'Random Forest' else xgb.XGBClassifier()
-        
-        model.fit(X_train, y_train)
-        predictions = model.predict(X_test)
-        
-        if task == 'Regression':
-            st.write('MSE:', mean_squared_error(y_test, predictions))
-            st.write('R^2:', r2_score(y_test, predictions))
-            fig, ax = plt.subplots()
-            sns.scatterplot(x=y_test, y=predictions, ax=ax)
-            sns.lineplot(x=y_test, y=y_test, color='red', ax=ax)
-            st.pyplot(fig)
-        else:
-            st.text(classification_report(y_test, predictions))
+        with st.spinner('Training model...'):
+            if task == 'Regression':
+                model = RandomForestRegressor() if model_type == 'Random Forest' else xgb.XGBRegressor()
+            else:
+                model = RandomForestClassifier() if model_type == 'Random Forest' else xgb.XGBClassifier()
+            model.fit(X_train, y_train)
+            predictions = model.predict(X_test)
+            st.success('Model training completed!')
+
+            if task == 'Regression':
+                st.write('MSE:', mean_squared_error(y_test, predictions))
+                st.write('R^2:', r2_score(y_test, predictions))
+                fig, ax = plt.subplots()
+                sns.scatterplot(x=y_test, y=predictions, ax=ax)
+                sns.lineplot(x=y_test, y=y_test, color='red', ax=ax)
+                st.pyplot(fig)
+            else:
+                st.text(classification_report(y_test, predictions))
+                cm = confusion_matrix(y_test, predictions)
+                fig = px.imshow(cm, text_auto=True, aspect="auto", labels=dict(x="Predicted", y="True", color="Count"))
+                st.plotly_chart(fig)
 
 elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
+    st.header('ANN Optimization')
     df = st.session_state.df
     target_col = st.selectbox('Select the target variable for optimization', df.columns, key='ann_optimization_target')
     task = st.radio("ANN Task Type", ['Classification', 'Regression'], key='ann_task_type')
-
     X = pd.get_dummies(df.drop(columns=[target_col]), drop_first=True).astype(np.float32)
     y = df[target_col].astype(np.float32) if task == 'Regression' else LabelEncoder().fit_transform(df[target_col])
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -116,6 +127,8 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
         return loss
 
     if st.button('Start ANN Optimization'):
-        study = optuna.create_study(direction='minimize')
-        study.optimize(objective, n_trials=10)
-        st.write('Best parameters:', study.best_params)
+        with st.spinner('Optimizing ANN...'):
+            study = optuna.create_study(direction='minimize')
+            study.optimize(objective, n_trials=10, callbacks=[lambda study, trial: st.experimental_rerun()])
+            st.success('ANN optimization completed!')
+            st.write('Best parameters:', study.best_params)
