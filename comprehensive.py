@@ -14,15 +14,7 @@ from tensorflow.keras.layers import Dense, Dropout
 import numpy as np
 
 
-# Sidebar header for social media links
-st.sidebar.header('Connect with Me')
 
-# Display the social media links
-st.sidebar.markdown('[LinkedIn](https://www.linkedin.com/in/kursat-kilic-395b5855/)')
-st.sidebar.markdown('[GitHub](https://github.com/kilickursat)')
-st.sidebar.markdown('[Google Scholar](https://scholar.google.co.jp/citations?user=sNB5IQsAAAAJ&hl=tr)')
-
-# The rest of your Streamlit application code goes here
 
 
 # Load and preprocess data
