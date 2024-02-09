@@ -134,3 +134,25 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
             study.optimize(objective, n_trials=10)
             st.success('ANN optimization completed!')
             st.write('Best parameters:', study.best_params)
+
+
+# Connect with Me section
+st.markdown('---')  # Adds a horizontal line for visual separation
+st.header('Connect with Me 🌐')
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown('''
+    [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/kursat-kilic-395b5855/)
+    ''', unsafe_allow_html=True)
+
+with col2:
+    st.markdown('''
+    [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/kilickursat)
+    ''', unsafe_allow_html=True)
+
+with col3:
+    st.markdown('''
+    [![Google Scholar](https://img.shields.io/badge/Google_Scholar-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://scholar.google.co.jp/citations?user=sNB5IQsAAAAJ&hl=tr)
+    ''', unsafe_allow_html=True)
