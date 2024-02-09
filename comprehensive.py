@@ -48,6 +48,19 @@ elif app_mode == 'Data Analysis' and st.session_state.df is not None:
         fig, ax = plt.subplots()
         sns.heatmap(numeric_df.corr(), annot=True, cmap='coolwarm', ax=ax)
         st.pyplot(fig)
+    
+    with st.expander("Frequency Histograms"):
+        numeric_columns = df.select_dtypes(include=[np.number]).columns
+        col1, col2 = st.columns(2)
+        with col1:
+            selected_column = st.selectbox('Select Feature', numeric_columns)
+        with col2:
+            n_bins = st.slider('Number of Bins', min_value=5, max_value=50, value=10)
+        fig, ax = plt.subplots()
+        sns.histplot(df[selected_column], bins=n_bins, kde=True, ax=ax)
+        ax.set_title(f'Histogram of {selected_column}')
+        st.pyplot(fig)
+
 
 elif app_mode == 'Model Recommendations' and st.session_state.df is not None:
     df = st.session_state.df
