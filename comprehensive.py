@@ -111,20 +111,31 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
     y = df[target_col].astype(np.float32) if task == 'Regression' else LabelEncoder().fit_transform(df[target_col])
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    def objective(trial):
-        model = Sequential([
-            Dense(trial.suggest_int('units', 16, 128), activation='relu', input_shape=(X_train.shape[1],)),
-            Dropout(trial.suggest_float('dropout', 0.1, 0.5)),
-            Dense(1, activation='sigmoid' if task == 'Classification' else 'linear')
-        ])
-        optimizer = trial.suggest_categorical('optimizer', ['adam', 'rmsprop', 'sgd'])
-        model.compile(optimizer=optimizer, 
-                      loss='binary_crossentropy' if task == 'Classification' else 'mean_squared_error',
-                      metrics=['accuracy'] if task == 'Classification' else ['mse'])
-        model.fit(X_train, y_train, epochs=trial.suggest_int('epochs', 10, 100), verbose=0,
-                  validation_split=0.1, batch_size=trial.suggest_int('batch_size', 32, 128))
-        loss = model.evaluate(X_test, y_test, verbose=0)[0]
-        return loss
+def objective(trial):
+    model = Sequential([
+        Dense(trial.suggest_int('units', 16, 128), activation='relu', input_shape=(X_train.shape[1],)),
+        Dropout(trial.suggest_float('dropout', 0.1, 0.5)),
+        Dense(1, activation='sigmoid' if task == 'Classification' else 'linear')
+    ])
+    # Suggesting a learning rate for the optimizer
+    lr = trial.suggest_float('lr', 1e-5, 1e-1, log=True)
+    optimizer_choices = {
+        'adam': Adam(learning_rate=lr),
+        'rmsprop': 'rmsprop',  # Add learning rate customization similar to Adam
+        'sgd': 'sgd'           # Add learning rate customization similar to Adam
+    }
+    optimizer = trial.suggest_categorical('optimizer', ['adam', 'rmsprop', 'sgd'])
+    model.compile(optimizer=optimizer_choices[optimizer], 
+                  loss='binary_crossentropy' if task == 'Classification' else 'mean_squared_error',
+                  metrics=['accuracy'] if task == 'Classification' else ['mse'])
+    model.fit(X_train, y_train, epochs=trial.suggest_int('epochs', 10, 100), verbose=0,
+              validation_split=0.1, batch_size=trial.suggest_int('batch_size', 32, 128))
+    loss = model.evaluate(X_test, y_test, verbose=0)[0]
+    # Handling NaN values to avoid trial failure
+    if np.isnan(loss):
+        return float('inf')  # Return infinity if loss is nan
+    return loss
+
 
     if st.button('Start ANN Optimization'):
         with st.spinner('Optimizing ANN...'):
