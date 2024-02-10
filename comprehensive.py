@@ -14,7 +14,6 @@ from tensorflow.keras.layers import Dense, Dropout
 import numpy as np
 from transformers import pipeline
 
-
 # Load and preprocess data
 def load_data(uploaded_file):
     try:
@@ -25,15 +24,28 @@ def load_data(uploaded_file):
     except Exception as e:
         return None, str(e)
 
+# New function to load the OpenHermes model
+@st.cache(allow_output_mutation=True)
+def load_openhermes_model():
+    model_pipeline = pipeline('text-generation', model="teknium/OpenHermes-2.5-Mistral-7B")
+    return model_pipeline
+
+# Setting up the page configuration and title
 st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
 st.title('Geotechnical Data Analysis and ML Model Recommendations')
 
+# Initializing session state for dataframe storage
 if 'df' not in st.session_state:
     st.session_state.df = None
 
+# Navigation setup in sidebar
 st.sidebar.header('Navigation')
-app_mode = st.sidebar.radio('Choose the app mode', ['Data Upload', 'Data Analysis', 'Model Recommendations', 'ANN Optimization'])
+app_mode = st.sidebar.radio(
+    'Choose the app mode', 
+    ['Data Upload', 'Data Analysis', 'Model Recommendations', 'ANN Optimization', 'Text Generation with OpenHermes']
+)
 
+# Data Upload mode
 if app_mode == 'Data Upload':
     uploaded_file = st.file_uploader("Upload your CSV or Excel file here.", type=['csv', 'xlsx'])
     if uploaded_file is not None:
