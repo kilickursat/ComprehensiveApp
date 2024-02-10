@@ -26,7 +26,7 @@ def load_data(uploaded_file):
     except Exception as e:
         return None, str(e)
 
-@st.cache_data(allow_output_mutation=True)
+@st.cache_data(suppress_st_warning=True)
 def load_openhermes_model():
     model_name = "teknium/OpenHermes-2.5-Mistral-7B"
     try:
