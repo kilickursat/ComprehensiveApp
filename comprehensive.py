@@ -27,16 +27,21 @@ def load_data(uploaded_file):
         return None, str(e)
         
 @st.cache_data(experimental_allow_widgets=True)
+def load_model_parts():
+  tokenizer = AutoTokenizer.from_pretrained(model_name)
+  model_config = AutoModelForCausalLM.from_pretrained(model_name).config
+  return tokenizer, model_config
+
+@st.cache_data(experimental_allow_widgets=True)
+def load_model_weights(tokenizer, model_config):
+  model = AutoModelForCausalLM.from_pretrained(model_name, config=model_config)
+  return model
+
 def load_openhermes_model():
-    model_name = "teknium/OpenHermes-2.5-Mistral-7B"
-    try:
-        # Attempt to load the model and tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForCausalLM.from_pretrained(model_name)
-    except Exception as e:
-        st.error(f"Failed to load the model with error: {e}")
-        return None, None
-    return model, tokenizer
+  tokenizer, config = load_model_parts()
+  model = load_model_weights(tokenizer, config)
+  return model, tokenizer
+
 
 # Setting up the page configuration and title
 st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
