@@ -13,6 +13,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 import numpy as np
 from transformers import pipeline
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
 # Load and preprocess data
 def load_data(uploaded_file):
@@ -26,9 +27,21 @@ def load_data(uploaded_file):
 
 # New function to load the OpenHermes model
 @st.cache(allow_output_mutation=True)
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoModelForCausalLM, AutoTokenizer
+import torch
+
+@st.cache(allow_output_mutation=True)
 def load_openhermes_model():
-    model_pipeline = pipeline('text-generation', model="teknium/OpenHermes-2.5-Mistral-7B")
-    return model_pipeline
+    model_name = "teknium/OpenHermes-2.5-Mistral-7B"
+    try:
+        # Attempt to load the model and tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForCausalLM.from_pretrained(model_name)
+    except Exception as e:
+        st.error(f"Failed to load the model with error: {e}")
+        return None, None
+    return model, tokenizer
+)
 
 # Setting up the page configuration and title
 st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
