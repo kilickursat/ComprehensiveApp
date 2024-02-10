@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import plotly.express as px
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import classification_report, confusion_matrix, mean_squared_error, r2_score
@@ -11,9 +9,35 @@ import xgboost as xgb
 import optuna
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
-import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import plotly.express as px
 from transformers import pipeline
+from concurrent.futures import ThreadPoolExecutor
+import asyncio
 
+# Concurrent futures executor
+executor = ThreadPoolExecutor(max_workers=2)
+
+# Async load model - Utilizing caching and concurrent futures to simulate async behavior
+@st.cache(allow_output_mutation=True, hash_funcs={"_thread.RLock": lambda _: None, "builtins.weakref": lambda _: None})
+def load_model():
+    model_name = "teknium/OpenHermes-2.5-Mistral-7B"
+    return pipeline('text-generation', model=model_name)
+
+model_pipeline = load_model()
+
+# Function to generate text with the model
+def generate_text(model_pipeline, prompt):
+    return model_pipeline(prompt, max_length=50, num_return_sequences=1)[0]['generated_text']
+
+# Existing web app code modified for the new section
+st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
+st.title('Geotechnical Data Analysis and ML Model Recommendations')
+
+# Navigation
+st.sidebar.header('Navigation')
+app_mode = st.sidebar.radio('Choose the app mode', ['Data Upload', 'Data Analysis', 'Model Recommendations', 'ANN Optimization', 'LLM Interaction'])
 
 # Load and preprocess data
 def load_data(uploaded_file):
@@ -25,14 +49,12 @@ def load_data(uploaded_file):
     except Exception as e:
         return None, str(e)
 
-st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
-st.title('Geotechnical Data Analysis and ML Model Recommendations')
+
 
 if 'df' not in st.session_state:
     st.session_state.df = None
 
-st.sidebar.header('Navigation')
-app_mode = st.sidebar.radio('Choose the app mode', ['Data Upload', 'Data Analysis', 'Model Recommendations', 'ANN Optimization'])
+
 
 if app_mode == 'Data Upload':
     uploaded_file = st.file_uploader("Upload your CSV or Excel file here.", type=['csv', 'xlsx'])
@@ -134,6 +156,20 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
             study.optimize(objective, n_trials=10)
             st.success('ANN optimization completed!')
             st.write('Best parameters:', study.best_params)
+
+# New LLM Interaction section
+if app_mode == 'LLM Interaction':
+    st.header('LLM Model Interaction')
+    user_prompt = st.text_area("Enter your prompt for the LLM model:", height=150)
+    if st.button('Generate Text'):
+        if user_prompt:
+            with st.spinner('Generating text...'):
+                future = executor.submit(generate_text, model_pipeline, user_prompt)
+                response = future.result()
+                st.write(response)
+        else:
+            st.warning('Please enter a prompt.')
+
 # Connect with Me section
 st.markdown('---')  # Adds a horizontal line for visual separation
 st.header('Connect with Me 🌐')
