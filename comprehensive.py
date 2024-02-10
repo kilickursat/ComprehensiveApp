@@ -13,7 +13,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 import numpy as np
 from transformers import pipeline
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoModelForCausalLM, AutoTokenizer
+import torch
 
 # Load and preprocess data
 def load_data(uploaded_file):
@@ -24,11 +25,6 @@ def load_data(uploaded_file):
             return pd.read_excel(uploaded_file, engine='openpyxl'), None
     except Exception as e:
         return None, str(e)
-
-# New function to load the OpenHermes model
-@st.cache(allow_output_mutation=True)
-from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoModelForCausalLM, AutoTokenizer
-import torch
 
 @st.cache(allow_output_mutation=True)
 def load_openhermes_model():
