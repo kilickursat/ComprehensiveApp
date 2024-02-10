@@ -15,6 +15,7 @@ import numpy as np
 from transformers import pipeline
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoModelForCausalLM, AutoTokenizer
 import torch
+import sentencepiece as spm
 
 # Load and preprocess data
 def load_data(uploaded_file):
