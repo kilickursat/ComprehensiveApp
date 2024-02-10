@@ -12,3 +12,4 @@ plotly
 transformers
 ollama
 torch
+sentencepiece
