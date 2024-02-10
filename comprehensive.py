@@ -37,7 +37,6 @@ def load_openhermes_model():
         st.error(f"Failed to load the model with error: {e}")
         return None, None
     return model, tokenizer
-)
 
 # Setting up the page configuration and title
 st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
