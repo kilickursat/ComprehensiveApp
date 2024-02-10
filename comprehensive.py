@@ -25,7 +25,7 @@ def load_data(uploaded_file):
             return pd.read_excel(uploaded_file, engine='openpyxl'), None
     except Exception as e:
         return None, str(e)
-        
+model_name = "teknium/OpenHermes-2.5-Mistral-7B"        
 @st.cache_data(experimental_allow_widgets=True)
 def load_model_parts():
   tokenizer = AutoTokenizer.from_pretrained(model_name)
