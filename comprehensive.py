@@ -146,6 +146,30 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
             study.optimize(objective, n_trials=10)
             st.success('ANN optimization completed!')
             st.write('Best parameters:', study.best_params)
+
+# Text Generation with OpenHermes mode
+elif app_mode == 'Text Generation with OpenHermes':
+    st.header("Generate Text with OpenHermes")
+    openhermes_pipeline = load_openhermes_model()
+    
+    # Displaying the text area for user input
+    user_prompt = st.text_area("Enter your prompt for the OpenHermes model:", height=150)
+    
+    # Displaying the button to generate text
+    if st.button('Generate Text'):
+        if user_prompt:
+            with st.spinner('Generating text...'):
+                try:
+                    # Generate text based on the user's prompt using the OpenHermes model
+                    response = openhermes_pipeline(user_prompt, max_length=50, num_return_sequences=1)
+                    generated_text = response[0]['generated_text']
+                    st.write(generated_text)
+                except Exception as e:
+                    # Handle any errors during text generation
+                    st.error(f"An error occurred: {e}")
+        else:
+            # Prompt the user to enter text if they haven't
+            st.warning('Please enter a prompt.')
 # Connect with Me section
 st.markdown('---')  # Adds a horizontal line for visual separation
 st.header('Connect with Me 🌐')
