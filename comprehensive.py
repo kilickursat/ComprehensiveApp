@@ -25,22 +25,26 @@ def load_data(uploaded_file):
             return pd.read_excel(uploaded_file, engine='openpyxl'), None
     except Exception as e:
         return None, str(e)
-model_name = "teknium/OpenHermes-2.5-Mistral-7B"        
-@st.cache_data(experimental_allow_widgets=True)
-def load_model_parts():
-  tokenizer = AutoTokenizer.from_pretrained(model_name)
-  model_config = AutoModelForCausalLM.from_pretrained(model_name).config
-  return tokenizer, model_config
 
-@st.cache_data(experimental_allow_widgets=True)
-def load_model_weights(tokenizer, model_config):
-  model = AutoModelForCausalLM.from_pretrained(model_name, config=model_config)
-  return model
 
+model_name = "teknium/OpenHermes-2.5-Mistral-7B"
+@st.cache_data(experimental_allow_widgets=True)
 def load_openhermes_model():
-  tokenizer, config = load_model_parts()
-  model = load_model_weights(tokenizer, config)
-  return model, tokenizer
+    try:
+        # Load tokenizer as usual
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+        # Load the model in full precision
+        model = AutoModelForCausalLM.from_pretrained(model_name)
+
+        # Convert the model to half-precision
+        model = model.half()
+
+    except Exception as e:
+        st.error(f"Failed to load the model with error: {e}")
+        return None, None
+
+    return model, tokenizer
 
 
 # Setting up the page configuration and title
