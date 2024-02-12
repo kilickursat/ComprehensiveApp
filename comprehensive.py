@@ -27,11 +27,7 @@ def load_data(uploaded_file):
     except Exception as e:
         return None, str(e)
 
-
 ollama_model = Ollama(model="gpt-neo-2.7B")
-@st.cache_data(experimental_allow_widgets=True)
-
-
 
 # Setting up the page configuration and title
 st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
@@ -56,7 +52,7 @@ if app_mode == 'Data Upload':
         if data is not None:
             st.session_state.df = data
             st.success('Data loaded successfully!')
-            st.write(st.session_state.df.head())
+            st.write(data.head())
         else:
             st.error(f"Error loading data: {error}")
 
@@ -131,7 +127,7 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
             Dropout(trial.suggest_float('dropout', 0.1, 0.5)),
             Dense(1, activation='sigmoid' if task == 'Classification' else 'linear')
         ])
-        lr = trial.suggest_loguniform('lr', 1e-4, 1e-2)  # Adjust learning rate
+        lr = trial.suggest_loguniform('lr', 1e-4, 1e-2)
         optimizer = trial.suggest_categorical('optimizer', ['adam', 'rmsprop', 'sgd'])
         model.compile(optimizer=optimizer,
                       loss='binary_crossentropy' if task == 'Classification' else 'mean_squared_error',
@@ -139,9 +135,7 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
         model.fit(X_train, y_train, epochs=trial.suggest_int('epochs', 10, 100), verbose=0,
                   validation_split=0.1, batch_size=trial.suggest_int('batch_size', 32, 128))
         loss = model.evaluate(X_test, y_test, verbose=0)[0]
-        if np.isnan(loss):
-            return float('inf')
-        return loss
+        return loss if not np.isnan(loss) else float('inf')
 
     if st.button('Start ANN Optimization'):
         with st.spinner('Optimizing ANN...'):
@@ -193,4 +187,3 @@ with col3:
     st.markdown('''
     [![Google Scholar](https://img.shields.io/badge/Google_Scholar-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://scholar.google.co.jp/citations?user=sNB5IQsAAAAJ&hl=tr)
     ''', unsafe_allow_html=True)
-
