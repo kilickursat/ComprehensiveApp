@@ -17,6 +17,14 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoModelForCausalLM, A
 import torch
 from langchain_community.llms import Ollama
 import requests 
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Access the Hugging Face API key
+HUGGING_FACE_API_KEY = os.getenv("HUGGING_FACE_API_KEY")
 
 # Load and preprocess data
 def load_data(uploaded_file):
@@ -31,7 +39,7 @@ def load_data(uploaded_file):
 # Updated Hugging Face Inference API integration with error handling
 def generate_text_with_huggingface(prompt):
     API_URL = "https://api-inference.huggingface.co/models/gpt2"
-    headers = {"Authorization": "Bearer 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"}
+    headers = {"Authorization": f"Bearer {HUGGING_FACE_API_KEY}"}
     payload = {"inputs": prompt, "parameters": {"max_length": 50}}
     try:
         response = requests.post(API_URL, headers=headers, json=payload)
