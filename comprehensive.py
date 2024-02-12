@@ -28,13 +28,21 @@ def load_data(uploaded_file):
     except Exception as e:
         return None, str(e)
 
-# Initialize Hugging Face's Inference API for text generation
+# Updated Hugging Face Inference API integration with error handling
 def generate_text_with_huggingface(prompt):
-    API_URL = "https://api-inference.huggingface.co/models/gpt2"  # You can change the model here
-    headers = {"Authorization": "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"}  # Replace with your API key
+    API_URL = "https://api-inference.huggingface.co/models/gpt2"
+    headers = {"Authorization": "Bearer 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"}
     payload = {"inputs": prompt, "parameters": {"max_length": 50}}
-    response = requests.post(API_URL, headers=headers, json=payload)
-    return response.json()[0]['generated_text']
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload)
+        if response.status_code == 200:
+            return response.json()[0]['generated_text']
+        else:
+            st.error(f"API request failed with status code {response.status_code}: {response.text}")
+            return "Failed to generate text due to API error."
+    except Exception as e:
+        st.error(f"An error occurred while calling the API: {str(e)}")
+        return "Failed to generate text due to an exception."
 
 # Setting up the page configuration and title
 st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
