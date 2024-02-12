@@ -15,6 +15,7 @@ import numpy as np
 from transformers import pipeline
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoModelForCausalLM, AutoTokenizer
 import torch
+from langchain.llms import Ollama
 
 # Load and preprocess data
 def load_data(uploaded_file):
@@ -27,24 +28,9 @@ def load_data(uploaded_file):
         return None, str(e)
 
 
-model_name = "teknium/OpenHermes-2.5-Mistral-7B"
+ollama_model = Ollama(model="gpt-neo-2.7B")
 @st.cache_data(experimental_allow_widgets=True)
-def load_openhermes_model():
-    try:
-        # Load tokenizer as usual
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-        # Load the model in full precision
-        model = AutoModelForCausalLM.from_pretrained(model_name)
-
-        # Convert the model to half-precision
-        model = model.half()
-
-    except Exception as e:
-        st.error(f"Failed to load the model with error: {e}")
-        return None, None
-
-    return model, tokenizer
 
 
 # Setting up the page configuration and title
@@ -164,29 +150,29 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
             st.success('ANN optimization completed!')
             st.write('Best parameters:', study.best_params)
 
-# Text Generation with OpenHermes mode
+# Text Generation with the newly integrated Ollama model
 elif app_mode == 'Text Generation with OpenHermes':
-    st.header("Generate Text with OpenHermes")
-    openhermes_pipeline = load_openhermes_model()
+    st.header("Generate Text with a Smaller Model")
     
     # Displaying the text area for user input
-    user_prompt = st.text_area("Enter your prompt for the OpenHermes model:", height=150)
+    user_prompt = st.text_area("Enter your prompt:", height=150)
     
     # Displaying the button to generate text
     if st.button('Generate Text'):
         if user_prompt:
             with st.spinner('Generating text...'):
                 try:
-                    # Generate text based on the user's prompt using the OpenHermes model
-                    response = openhermes_pipeline(user_prompt, max_length=50, num_return_sequences=1)
-                    generated_text = response[0]['generated_text']
-                    st.write(generated_text)
+                    # Generate text based on the user's prompt using the Ollama model
+                    response = ollama_model.predict(prompt=user_prompt, max_tokens=50)  # Adjust max_tokens as needed
+                    # Assuming the response is a string directly
+                    st.write(response)
                 except Exception as e:
                     # Handle any errors during text generation
                     st.error(f"An error occurred: {e}")
         else:
             # Prompt the user to enter text if they haven't
             st.warning('Please enter a prompt.')
+
 # Connect with Me section
 st.markdown('---')  # Adds a horizontal line for visual separation
 st.header('Connect with Me 🌐')
