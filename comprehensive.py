@@ -27,7 +27,13 @@ def load_data(uploaded_file):
     except Exception as e:
         return None, str(e)
 
-ollama_model = Ollama(model="gpt-neo-2.7B")
+# Initialize Hugging Face's Inference API for text generation
+def generate_text_with_huggingface(prompt):
+    API_URL = "https://api-inference.huggingface.co/models/gpt2"  # You can change the model here
+    headers = {"Authorization": "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"}  # Replace with your API key
+    payload = {"inputs": prompt, "parameters": {"max_length": 50}}
+    response = requests.post(API_URL, headers=headers, json=payload)
+    return response.json()[0]['generated_text']
 
 # Setting up the page configuration and title
 st.set_page_config(page_title='Geotechnical Data Analysis', layout='wide')
@@ -144,9 +150,9 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
             st.success('ANN optimization completed!')
             st.write('Best parameters:', study.best_params)
 
-# Text Generation with the newly integrated Ollama model
+# Text Generation with Hugging Face's Inference API
 elif app_mode == 'Text Generation with OpenHermes':
-    st.header("Generate Text with a Smaller Model")
+    st.header("Generate Text with Hugging Face's Model")
     
     # Displaying the text area for user input
     user_prompt = st.text_area("Enter your prompt:", height=150)
@@ -156,22 +162,14 @@ elif app_mode == 'Text Generation with OpenHermes':
         if user_prompt:
             with st.spinner('Generating text...'):
                 try:
-                    # Adjust the invoke call to include the `input` parameter
-                    # Assuming `input` is the correct parameter for the prompt text
-                    response = ollama_model.invoke(input=user_prompt, max_tokens=50)  # Adjust max_tokens as needed
-                    
-                    # Assuming the response structure is similar to previous usage
-                    # You might need to adjust this depending on the actual structure
-                    generated_text = response['choices'][0]['text'] if 'choices' in response else response
-                    
-                    st.write(generated_text)
+                    generated_text = generate_text_with_huggingface(user_prompt)
+                    st.text_area("Generated Text:", generated_text, height=250)
                 except Exception as e:
                     # Handle any errors during text generation
                     st.error(f"An error occurred: {e}")
         else:
             # Prompt the user to enter text if they haven't
             st.warning('Please enter a prompt.')
-
 
 # Connect with Me section
 st.markdown('---')  # Adds a horizontal line for visual separation
