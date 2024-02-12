@@ -156,16 +156,21 @@ elif app_mode == 'Text Generation with OpenHermes':
         if user_prompt:
             with st.spinner('Generating text...'):
                 try:
-                    # Generate text based on the user's prompt using the Ollama model
-                    response = ollama_model.predict(prompt=user_prompt, max_tokens=50)  # Adjust max_tokens as needed
-                    # Assuming the response is a string directly
-                    st.write(response)
+                    # Use `invoke` instead of `predict` for generating text
+                    response = ollama_model.invoke(prompt=user_prompt, max_tokens=50)  # Adjust max_tokens as needed
+                    
+                    # Check how the response is structured and extract text accordingly
+                    # This might need adjustment based on the response structure from `invoke`
+                    generated_text = response['choices'][0]['text'] if 'choices' in response else response
+                    
+                    st.write(generated_text)
                 except Exception as e:
                     # Handle any errors during text generation
                     st.error(f"An error occurred: {e}")
         else:
             # Prompt the user to enter text if they haven't
             st.warning('Please enter a prompt.')
+
 
 # Connect with Me section
 st.markdown('---')  # Adds a horizontal line for visual separation
