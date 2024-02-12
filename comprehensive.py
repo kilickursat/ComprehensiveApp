@@ -168,7 +168,7 @@ elif app_mode == 'ANN Optimization' and st.session_state.df is not None:
             st.write('Best parameters:', study.best_params)
 
 # Text Generation with Hugging Face's Inference API
-elif app_mode == 'Text Generation with OpenHermes':
+elif app_mode == 'Text Generation with Mixtral-8x7B-Instruct-v0.1':
     st.header("Generate Text with Hugging Face's Model")
     
     # Displaying the text area for user input
