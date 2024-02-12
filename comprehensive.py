@@ -64,7 +64,7 @@ if 'df' not in st.session_state:
 st.sidebar.header('Navigation')
 app_mode = st.sidebar.radio(
     'Choose the app mode', 
-    ['Data Upload', 'Data Analysis', 'Model Recommendations', 'ANN Optimization', 'Text Generation with OpenHermes']
+    ['Data Upload', 'Data Analysis', 'Model Recommendations', 'ANN Optimization', 'Text Generation with Mixtral-8x7B-Instruct-v0.1']
 )
 
 # Data Upload mode
