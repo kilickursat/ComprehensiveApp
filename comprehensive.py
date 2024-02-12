@@ -38,7 +38,7 @@ def load_data(uploaded_file):
 
 # Updated Hugging Face Inference API integration with error handling
 def generate_text_with_huggingface(prompt):
-    API_URL = "https://api-inference.huggingface.co/models/teknium/OpenHermes-2.5-Mistral-7B"
+    API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-large"
     headers = {"Authorization": f"Bearer {HUGGING_FACE_API_KEY}"}
     payload = {"inputs": prompt, "parameters": {"max_length": 50}}
     try:
