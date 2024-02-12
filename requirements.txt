@@ -13,3 +13,4 @@ transformers
 ollama
 torch
 sentencepiece
+langchain
