@@ -156,11 +156,12 @@ elif app_mode == 'Text Generation with OpenHermes':
         if user_prompt:
             with st.spinner('Generating text...'):
                 try:
-                    # Use `invoke` instead of `predict` for generating text
-                    response = ollama_model.invoke(prompt=user_prompt, max_tokens=50)  # Adjust max_tokens as needed
+                    # Adjust the invoke call to include the `input` parameter
+                    # Assuming `input` is the correct parameter for the prompt text
+                    response = ollama_model.invoke(input=user_prompt, max_tokens=50)  # Adjust max_tokens as needed
                     
-                    # Check how the response is structured and extract text accordingly
-                    # This might need adjustment based on the response structure from `invoke`
+                    # Assuming the response structure is similar to previous usage
+                    # You might need to adjust this depending on the actual structure
                     generated_text = response['choices'][0]['text'] if 'choices' in response else response
                     
                     st.write(generated_text)
