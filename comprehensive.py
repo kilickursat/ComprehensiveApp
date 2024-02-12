@@ -190,6 +190,12 @@ elif app_mode == 'Text Generation with Mixtral-8x7B-Instruct-v0.1':
             # Prompt the user to enter text if they haven't
             st.warning('Please enter a prompt.')
 
+st.markdown('---')  # Adds a separation line for clarity
+bmc_url = "https://www.buymeacoffee.com/kursatkilic"  # Replace with your actual URL
+st.markdown(f"""<a href="{bmc_url}" target="_blank"> <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>""", unsafe_allow_html=True)
+
+# Connect with Me section remains unchanged
+st.markdown('---')  # Adds a horizontal line for visual separation
 # Connect with Me section
 st.markdown('---')  # Adds a horizontal line for visual separation
 st.header('Connect with Me 🌐')
