@@ -31,7 +31,7 @@ def load_data(uploaded_file):
 # Initialize Hugging Face's Inference API for text generation
 def generate_text_with_huggingface(prompt):
     API_URL = "https://api-inference.huggingface.co/models/gpt2"  # You can change the model here
-    headers = {"Authorization": "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"}  # Replace with your API key
+    headers = {"Authorization": "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"}  # Replace with your API key
     payload = {"inputs": prompt, "parameters": {"max_length": 50}}
     response = requests.post(API_URL, headers=headers, json=payload)
     return response.json()[0]['generated_text']
