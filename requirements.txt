@@ -14,3 +14,4 @@ ollama
 torch
 sentencepiece
 langchain
+langchain-community
