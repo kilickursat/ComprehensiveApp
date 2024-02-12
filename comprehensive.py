@@ -20,6 +20,12 @@ import requests
 from dotenv import load_dotenv
 import os
 
+bmc_url = "https://www.buymeacoffee.com/kursatkilic"
+
+# Use Streamlit's markdown to create a link that looks like a button
+st.markdown(f'<a href="{bmc_url}" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>', unsafe_allow_html=True)
+
+
 # Load environment variables from .env file
 load_dotenv()
 
