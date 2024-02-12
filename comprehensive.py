@@ -16,6 +16,7 @@ from transformers import pipeline
 from transformers import GPT2LMHeadModel, GPT2Tokenizer, AutoModelForCausalLM, AutoTokenizer
 import torch
 from langchain_community.llms import Ollama
+import requests 
 
 # Load and preprocess data
 def load_data(uploaded_file):
