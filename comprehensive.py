@@ -37,6 +37,10 @@ def load_data(uploaded_file):
             return pd.read_excel(uploaded_file, engine='openpyxl'), None
     except Exception as e:
         return None, str(e)
+        
+# Function to convert DataFrame to CSV (added for download functionality)
+def convert_df(df):
+    return df.to_csv().encode('utf-8')
 
 # Updated Hugging Face Inference API integration with error handling
 def generate_text_with_huggingface(prompt):
@@ -78,6 +82,15 @@ if app_mode == 'Data Upload':
             st.session_state.df = data
             st.success('Data loaded successfully!')
             st.write(data.head())
+            
+            # Download button for the dataframe
+            csv = convert_df(data)
+            st.download_button(
+                label="Download data as CSV",
+                data=csv,
+                file_name='dataframe.csv',
+                mime='text/csv',
+            )
         else:
             st.error(f"Error loading data: {error}")
 
