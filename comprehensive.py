@@ -97,20 +97,46 @@ if app_mode == 'Data Upload':
 elif app_mode == 'Data Analysis' and st.session_state.df is not None:
     df = st.session_state.df
     st.header('Data Analysis')
-    analysis_options = st.multiselect('Select the types of analysis to perform:',
-                                      ['Data Summary', 'Correlation Matrix', 'Frequency Histograms'],
-                                      default=['Data Summary'])
+
+    # Display the entire DataFrame using st.dataframe for interactive exploration
+    st.subheader('Interactive Data View')
+    st.dataframe(df)  # This line adds the interactive DataFrame view
+
+    # Provide a CSV download for the entire DataFrame
+    csv = df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="Download full data as CSV",
+        data=csv,
+        file_name='full_data_analysis_dataframe.csv',
+        mime='text/csv',
+    )
+
+    analysis_options = st.multiselect(
+        'Select the types of analysis to perform:',
+        ['Data Summary', 'Correlation Matrix', 'Frequency Histograms'],
+        default=['Data Summary']
+    )
     
     if 'Data Summary' in analysis_options:
         with st.expander("Data Summary"):
-            st.write(df.describe())
+            summary_df = df.describe()
+            st.write(summary_df)
+            # Optionally, provide a download for the summary data
+            csv_summary = summary_df.to_csv(index=True).encode('utf-8')
+            st.download_button(
+                "Download summary data as CSV",
+                csv_summary,
+                "summary_data_analysis_dataframe.csv",
+                "text/csv",
+                key="download-csv-summary"
+            )
     
     if 'Correlation Matrix' in analysis_options:
         with st.expander("Correlation Matrix"):
             numeric_df = df.select_dtypes(include=[np.number])
             fig = px.imshow(numeric_df.corr(), text_auto=True, aspect="auto", color_continuous_scale='RdBu_r')
             st.plotly_chart(fig)
-
+    
     if 'Frequency Histograms' in analysis_options:
         with st.expander("Frequency Histograms"):
             numeric_columns = df.select_dtypes(include=[np.number]).columns
@@ -118,6 +144,7 @@ elif app_mode == 'Data Analysis' and st.session_state.df is not None:
             n_bins = st.slider('Number of Bins', min_value=5, max_value=50, value=10)
             fig = px.histogram(df, x=selected_column, nbins=n_bins)
             st.plotly_chart(fig)
+
 
 elif app_mode == 'Model Recommendations' and st.session_state.df is not None:
     df = st.session_state.df
